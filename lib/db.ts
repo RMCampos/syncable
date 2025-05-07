@@ -1,4 +1,8 @@
-import { neon, type NeonQueryFunction } from "@neondatabase/serverless"
+import { neon } from "@neondatabase/serverless"
+import { Pool } from 'pg'
+
+const isDev = process.env.NODE_ENV === 'development'
+let pgPool: Pool | null = null
 
 // Function to get the database URL from environment variables
 function getDatabaseUrl(): string {
@@ -16,29 +20,42 @@ function getDatabaseUrl(): string {
   return url
 }
 
-// Create a SQL client with error handling
-let sqlClient: NeonQueryFunction<any, any>
+export const sql = async (
+  strings: TemplateStringsArray,
+  ...values: any[]
+) => {
+  if (isDev) {
+    if (!pgPool) {
+      pgPool = new Pool({
+        connectionString: getDatabaseUrl(),
+      })
+    }
 
-try {
-  const dbUrl = getDatabaseUrl()
-  // Set the time zone to Brazil (America/Sao_Paulo) for all database connections
-  sqlClient = neon(dbUrl)
+    const client = await pgPool.connect()
+    try {
+      await client.query(`SET timezone = 'America/Sao_Paulo'`)
+      
+      console.log("PG Database connection initialized successfully with Brazil time zone")
 
-  // Initialize the database with the correct time zone
-  sqlClient`SET timezone = 'America/Sao_Paulo'`.catch((err) => {
-    console.error("Failed to set database timezone:", err)
-  })
+      // Convert the tagged template to a parameterized query
+      const text = strings.reduce((acc, str, i) => acc + str + (i < values.length ? `$${i + 1}` : ''), '')
+      const res = await client.query(text, values)
+      return res.rows
+    } finally {
+      client.release()
+    }
+  } else {
+    const neonSql = neon(getDatabaseUrl())
 
-  console.log("Database connection initialized successfully with Brazil time zone")
-} catch (error) {
-  console.error("Failed to initialize database connection:", error)
-  // Provide a dummy function that throws an error when used
-  sqlClient = (() => {
-    throw new Error("Database connection failed. Check server logs for details.")
-  }) as unknown as NeonQueryFunction<any, any>
+    // Initialize the database with the correct time zone
+    neonSql`SET timezone = 'America/Sao_Paulo'`.catch((err) => {
+      console.error("Failed to set database timezone:", err)
+    })
+
+    console.log("Neon Database connection initialized successfully with Brazil time zone")
+    return await neonSql(strings, ...values)
+  }
 }
-
-export const sql = sqlClient
 
 // Helper function to format time in hours and minutes
 export function formatDuration(milliseconds: number): string {
