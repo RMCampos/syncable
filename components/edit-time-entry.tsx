@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
-import { createBrazilianDate, formatDateForInput, formatTimeForInput } from "@/lib/timezone"
+import { useTimezone } from "@/components/timezone-provider"
+import { createDateInTimezone, formatDateForInput, formatTimeForInput } from "@/lib/timezone"
 import { Edit, PlusCircle, Trash2 } from "lucide-react"
 import { useState } from "react"
 
@@ -42,19 +43,21 @@ export function EditTimeEntry({
   breaks,
   onSuccess,
 }: EditTimeEntryProps) {
+  const { timezone } = useTimezone()
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Format date and times for form inputs using Brazilian time zone
-  const [date, setDate] = useState(formatDateForInput(initialStartTime))
-  const [startTime, setStartTime] = useState(formatTimeForInput(initialStartTime))
-  const [endTime, setEndTime] = useState(initialEndTime ? formatTimeForInput(initialEndTime) : "")
+  // Format date and times for form inputs using Brazil time zone (local time for input)
+  const BRAZIL_TIMEZONE = "America/Sao_Paulo"
+  const [date, setDate] = useState(formatDateForInput(initialStartTime, BRAZIL_TIMEZONE))
+  const [startTime, setStartTime] = useState(formatTimeForInput(initialStartTime, BRAZIL_TIMEZONE))
+  const [endTime, setEndTime] = useState(initialEndTime ? formatTimeForInput(initialEndTime, BRAZIL_TIMEZONE) : "")
 
   const [breakItems, setBreakItems] = useState(
     breaks.map((breakItem) => ({
       id: breakItem.id,
-      startTime: formatTimeForInput(breakItem.startTime),
-      endTime: breakItem.endTime ? formatTimeForInput(breakItem.endTime) : "",
+      startTime: formatTimeForInput(breakItem.startTime, BRAZIL_TIMEZONE),
+      endTime: breakItem.endTime ? formatTimeForInput(breakItem.endTime, BRAZIL_TIMEZONE) : "",
       isNew: false,
       isDeleted: false,
     })),
@@ -94,9 +97,10 @@ export function EditTimeEntry({
         return
       }
 
-      // Create Date objects with Brazil timezone
-      const startDateTime = createBrazilianDate(date, startTime)
-      const endDateTime = endTime ? createBrazilianDate(date, endTime) : null
+      // Create Date objects with Brazil timezone (user always inputs Brazil local time)
+      const BRAZIL_TIMEZONE = "America/Sao_Paulo"
+      const startDateTime = createDateInTimezone(date, startTime, BRAZIL_TIMEZONE)
+      const endDateTime = endTime ? createDateInTimezone(date, endTime, BRAZIL_TIMEZONE) : null
 
       console.log("Updating time entry:", {
         startDateTime: startDateTime.toISOString(),
@@ -121,13 +125,13 @@ export function EditTimeEntry({
         throw new Error(updateResult.error || "Failed to update time entry")
       }
 
-      // Process breaks
+      // Process breaks (always interpret as Brazil local time)
       for (const breakItem of breakItems) {
         // Skip deleted breaks that are new (not yet in the database)
         if (breakItem.isDeleted && breakItem.isNew) continue
 
-        const breakStartTime = createBrazilianDate(date, breakItem.startTime)
-        const breakEndTime = breakItem.endTime ? createBrazilianDate(date, breakItem.endTime) : null
+        const breakStartTime = createDateInTimezone(date, breakItem.startTime, BRAZIL_TIMEZONE)
+        const breakEndTime = breakItem.endTime ? createDateInTimezone(date, breakItem.endTime, BRAZIL_TIMEZONE) : null
 
         console.log("Processing break:", {
           id: breakItem.id,
@@ -187,7 +191,7 @@ export function EditTimeEntry({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Time Entry</DialogTitle>
-          <DialogDescription>Update the details of this time entry.</DialogDescription>
+          <DialogDescription>Update the details of this time entry (Brazil local time).</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

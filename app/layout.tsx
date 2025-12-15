@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider";
+import { TimezoneProvider } from "@/components/timezone-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -21,8 +22,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          {children}
-          <Toaster />
+          <TimezoneProvider>
+            {children}
+            <Toaster />
+          </TimezoneProvider>
         </ThemeProvider>
       </body>
     </html>

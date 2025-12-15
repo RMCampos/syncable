@@ -23,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { formatDateBR } from "@/lib/timezone";
+import { useTimezone } from "@/components/timezone-provider";
 import { useEffect, useState } from "react";
 import { ThemeSettings } from "./theme-settings";
 
@@ -47,6 +48,7 @@ export function GeneralSettings({
   userId,
   initialSettings,
 }: GeneralSettingsProps) {
+  const { timezone: currentTimezone, refreshTimezone } = useTimezone();
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [workingHours, setWorkingHours] = useState(
@@ -159,6 +161,9 @@ export function GeneralSettings({
       });
 
       if (result.success) {
+        // Refresh the timezone context to update all components
+        await refreshTimezone();
+
         toast({
           title: "Settings Saved Successfully",
           description:
@@ -224,7 +229,7 @@ export function GeneralSettings({
             <div className="grid gap-2">
               <Label>Account Created</Label>
               <div className="text-sm text-muted-foreground">
-                {formatDateBR(new Date(profile.created_at))}
+                {formatDateBR(new Date(profile.created_at), currentTimezone)}
               </div>
             </div>
           </CardContent>
@@ -247,12 +252,7 @@ export function GeneralSettings({
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Time Tracking Settings
-            <span className="inline-flex items-center rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-200 ring-1 ring-inset ring-gray-700">
-              Coming Soon
-            </span>
-          </CardTitle>
+          <CardTitle>Time Tracking Settings</CardTitle>
           <CardDescription>
             Configure your time tracking preferences
           </CardDescription>
@@ -280,18 +280,75 @@ export function GeneralSettings({
                 <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="UTC">UTC</SelectItem>
+                <SelectItem value="UTC">UTC (Coordinated Universal Time)</SelectItem>
+                <SelectItem value="America/Sao_Paulo">
+                  São Paulo (BRT/BRST)
+                </SelectItem>
                 <SelectItem value="America/New_York">
-                  Eastern Time (EST)
+                  New York (EST/EDT)
                 </SelectItem>
                 <SelectItem value="America/Chicago">
-                  Central Time (CST)
+                  Chicago (CST/CDT)
                 </SelectItem>
                 <SelectItem value="America/Denver">
-                  Mountain Time (MST)
+                  Denver (MST/MDT)
                 </SelectItem>
                 <SelectItem value="America/Los_Angeles">
-                  Pacific Time (PST)
+                  Los Angeles (PST/PDT)
+                </SelectItem>
+                <SelectItem value="America/Mexico_City">
+                  Mexico City (CST/CDT)
+                </SelectItem>
+                <SelectItem value="America/Toronto">
+                  Toronto (EST/EDT)
+                </SelectItem>
+                <SelectItem value="America/Vancouver">
+                  Vancouver (PST/PDT)
+                </SelectItem>
+                <SelectItem value="Europe/London">
+                  London (GMT/BST)
+                </SelectItem>
+                <SelectItem value="Europe/Paris">
+                  Paris (CET/CEST)
+                </SelectItem>
+                <SelectItem value="Europe/Berlin">
+                  Berlin (CET/CEST)
+                </SelectItem>
+                <SelectItem value="Europe/Madrid">
+                  Madrid (CET/CEST)
+                </SelectItem>
+                <SelectItem value="Europe/Rome">
+                  Rome (CET/CEST)
+                </SelectItem>
+                <SelectItem value="Europe/Lisbon">
+                  Lisbon (WET/WEST)
+                </SelectItem>
+                <SelectItem value="Asia/Tokyo">
+                  Tokyo (JST)
+                </SelectItem>
+                <SelectItem value="Asia/Shanghai">
+                  Shanghai (CST)
+                </SelectItem>
+                <SelectItem value="Asia/Hong_Kong">
+                  Hong Kong (HKT)
+                </SelectItem>
+                <SelectItem value="Asia/Singapore">
+                  Singapore (SGT)
+                </SelectItem>
+                <SelectItem value="Asia/Dubai">
+                  Dubai (GST)
+                </SelectItem>
+                <SelectItem value="Asia/Kolkata">
+                  Mumbai/Kolkata (IST)
+                </SelectItem>
+                <SelectItem value="Australia/Sydney">
+                  Sydney (AEDT/AEST)
+                </SelectItem>
+                <SelectItem value="Australia/Melbourne">
+                  Melbourne (AEDT/AEST)
+                </SelectItem>
+                <SelectItem value="Pacific/Auckland">
+                  Auckland (NZDT/NZST)
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -306,8 +363,8 @@ export function GeneralSettings({
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSaveGeneralSettings} disabled={true}>
-            Coming Soon
+          <Button onClick={handleSaveGeneralSettings} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save Settings"}
           </Button>
         </CardFooter>
       </Card>

@@ -150,53 +150,70 @@ export async function updateUserSettings(
         )
       `;
     } else {
-      let updateQuery = sql`UPDATE user_settings SET `;
-      const conditions: any[] = [];
+      // Build a dynamic UPDATE query with proper parameterization
+      const queryParts: string[] = [];
+      const values: any[] = [];
+      let currentPart = 'UPDATE user_settings SET ';
 
       if (settings.working_hours !== undefined) {
-        conditions.push(sql`working_hours = ${settings.working_hours}`);
+        currentPart += 'working_hours = ';
+        queryParts.push(currentPart);
+        values.push(settings.working_hours);
+        currentPart = '';
       }
       if (settings.timezone !== undefined) {
-        conditions.push(sql`timezone = ${settings.timezone}`);
+        currentPart += values.length > 0 ? ', timezone = ' : 'timezone = ';
+        queryParts.push(currentPart);
+        values.push(settings.timezone);
+        currentPart = '';
       }
       if (settings.auto_detect_breaks !== undefined) {
-        conditions.push(
-          sql`auto_detect_breaks = ${settings.auto_detect_breaks}`
-        );
+        currentPart += values.length > 0 ? ', auto_detect_breaks = ' : 'auto_detect_breaks = ';
+        queryParts.push(currentPart);
+        values.push(settings.auto_detect_breaks);
+        currentPart = '';
       }
       if (settings.enable_notifications !== undefined) {
-        conditions.push(
-          sql`enable_notifications = ${settings.enable_notifications}`
-        );
+        currentPart += values.length > 0 ? ', enable_notifications = ' : 'enable_notifications = ';
+        queryParts.push(currentPart);
+        values.push(settings.enable_notifications);
+        currentPart = '';
       }
       if (settings.enable_email_notifications !== undefined) {
-        conditions.push(
-          sql`enable_email_notifications = ${settings.enable_email_notifications}`
-        );
+        currentPart += values.length > 0 ? ', enable_email_notifications = ' : 'enable_email_notifications = ';
+        queryParts.push(currentPart);
+        values.push(settings.enable_email_notifications);
+        currentPart = '';
       }
       if (settings.allow_sharing !== undefined) {
-        conditions.push(sql`allow_sharing = ${settings.allow_sharing}`);
+        currentPart += values.length > 0 ? ', allow_sharing = ' : 'allow_sharing = ';
+        queryParts.push(currentPart);
+        values.push(settings.allow_sharing);
+        currentPart = '';
       }
       if (settings.share_duration_days !== undefined) {
-        conditions.push(
-          sql`share_duration_days = ${settings.share_duration_days}`
-        );
+        currentPart += values.length > 0 ? ', share_duration_days = ' : 'share_duration_days = ';
+        queryParts.push(currentPart);
+        values.push(settings.share_duration_days);
+        currentPart = '';
       }
       if (settings.theme !== undefined) {
-        conditions.push(sql`theme = ${settings.theme}`);
+        currentPart += values.length > 0 ? ', theme = ' : 'theme = ';
+        queryParts.push(currentPart);
+        values.push(settings.theme);
+        currentPart = '';
       }
 
-      if (conditions.length > 0) {
-        for (let i = 0; i < conditions.length; i++) {
-          if (i > 0) {
-            updateQuery = sql`${updateQuery}, `;
-          }
-          updateQuery = sql`${updateQuery}${conditions[i]}`;
-        }
+      if (values.length > 0) {
+        currentPart += ' WHERE user_id = ';
+        queryParts.push(currentPart);
+        values.push(userId);
+        queryParts.push('');
 
-        updateQuery = sql`${updateQuery} WHERE user_id = ${userId}`;
+        // Convert to TemplateStringsArray format for the sql function
+        const strings = Object.assign([...queryParts], { raw: [...queryParts] });
 
-        await updateQuery;
+        await sql(strings as any as TemplateStringsArray, ...values);
       }
     }
 

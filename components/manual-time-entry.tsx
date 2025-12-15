@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
-import { createBrazilianDate, formatDateForInput, getNowInBrazil } from "@/lib/timezone"
+import { useTimezone } from "@/components/timezone-provider"
+import { createDateInTimezone, formatDateForInput, getNowInTimezone } from "@/lib/timezone"
 import { Clock, PlusCircle, Trash2 } from "lucide-react"
 import { useState } from "react"
 
@@ -27,12 +28,14 @@ interface ManualTimeEntryProps {
 }
 
 export function ManualTimeEntry({ userId, onSuccess }: ManualTimeEntryProps) {
+  const { timezone } = useTimezone()
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Initialize with current date in Brazilian time zone
-  const now = getNowInBrazil()
-  const [date, setDate] = useState(formatDateForInput(now))
+  // Initialize with current date in Brazil time zone (local time for input)
+  const BRAZIL_TIMEZONE = "America/Sao_Paulo"
+  const now = getNowInTimezone(BRAZIL_TIMEZONE)
+  const [date, setDate] = useState(formatDateForInput(now, BRAZIL_TIMEZONE))
   const [startTime, setStartTime] = useState("09:00")
   const [endTime, setEndTime] = useState("17:00")
   const [breaks, setBreaks] = useState<{ id: number; startTime: string; endTime: string }[]>([])
@@ -67,9 +70,10 @@ export function ManualTimeEntry({ userId, onSuccess }: ManualTimeEntryProps) {
         return
       }
 
-      // Create Date objects with Brazil timezone
-      const startDateTime = createBrazilianDate(date, startTime)
-      const endDateTime = endTime ? createBrazilianDate(date, endTime) : null
+      // Create Date objects with Brazil timezone (user always inputs Brazil local time)
+      const BRAZIL_TIMEZONE = "America/Sao_Paulo"
+      const startDateTime = createDateInTimezone(date, startTime, BRAZIL_TIMEZONE)
+      const endDateTime = endTime ? createDateInTimezone(date, endTime, BRAZIL_TIMEZONE) : null
 
       // Validate start and end times
       if (endDateTime && startDateTime >= endDateTime) {
@@ -82,10 +86,10 @@ export function ManualTimeEntry({ userId, onSuccess }: ManualTimeEntryProps) {
         return
       }
 
-      // Format breaks
+      // Format breaks (always interpret as Brazil local time)
       const formattedBreaks = breaks.map((breakItem) => {
-        const breakStartTime = createBrazilianDate(date, breakItem.startTime)
-        const breakEndTime = breakItem.endTime ? createBrazilianDate(date, breakItem.endTime) : null
+        const breakStartTime = createDateInTimezone(date, breakItem.startTime, BRAZIL_TIMEZONE)
+        const breakEndTime = breakItem.endTime ? createDateInTimezone(date, breakItem.endTime, BRAZIL_TIMEZONE) : null
 
         // Validate break times
         if (breakEndTime && breakStartTime >= breakEndTime) {
@@ -152,7 +156,7 @@ export function ManualTimeEntry({ userId, onSuccess }: ManualTimeEntryProps) {
         <DialogHeader>
           <DialogTitle>Add Manual Entry</DialogTitle>
           <DialogDescription>
-            Enter the details of the time period you want to manually record.
+            Enter the details of the time period you want to manually record (Brazil local time).
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

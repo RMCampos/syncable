@@ -17,7 +17,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "@/components/ui/use-toast"
-import { formatDateBR, formatTimeBR, getNowInBrazil, isSameDayBR } from "@/lib/timezone"
+import { useTimezone } from "@/components/timezone-provider"
+import { formatDateBR, formatTimeBR, getNowInTimezone, isSameDayBR } from "@/lib/timezone"
 import { calculateDuration, formatDuration } from "@/lib/utils"
 import { Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -40,6 +41,7 @@ type Entry = {
 }
 
 export function RecentEntries({ userId }: { userId: number }) {
+  const { timezone } = useTimezone()
   const [entries, setEntries] = useState<Entry[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [entryToDelete, setEntryToDelete] = useState<number | null>(null)
@@ -140,18 +142,18 @@ export function RecentEntries({ userId }: { userId: number }) {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    const today = getNowInBrazil()
+    const today = getNowInTimezone(timezone)
 
-    // Create yesterday in Brazilian time
+    // Create yesterday in user's timezone
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)
 
-    if (isSameDayBR(date, today)) {
+    if (isSameDayBR(date, today, timezone)) {
       return "Today"
-    } else if (isSameDayBR(date, yesterday)) {
+    } else if (isSameDayBR(date, yesterday, timezone)) {
       return "Yesterday"
     } else {
-      return formatDateBR(date)
+      return formatDateBR(date, timezone)
     }
   }
 
@@ -187,7 +189,7 @@ export function RecentEntries({ userId }: { userId: number }) {
                 <div className="space-y-1">
                   <div className="font-medium">{formatDate(entry.start_time)}</div>
                   <div className="text-sm text-muted-foreground">
-                    {formatTimeBR(startTime)} - {endTime ? formatTimeBR(endTime) : "In Progress"}
+                    {formatTimeBR(startTime, timezone)} - {endTime ? formatTimeBR(endTime, timezone) : "In Progress"}
                   </div>
                 </div>
                 <div className="text-right space-y-1">

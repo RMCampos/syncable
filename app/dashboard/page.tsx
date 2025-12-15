@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/dashboard-shell"
 import { MonthlyStats } from "@/components/monthly-stats"
 import { RecentEntries } from "@/components/recent-entries"
 import { TimeTracker } from "@/components/time-tracker"
+import { TimeTrackerDescription } from "@/components/time-tracker-description"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -141,7 +142,7 @@ export default async function DashboardPage() {
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Time Tracker</CardTitle>
-            <CardDescription>Track your time entries, breaks, and exits</CardDescription>
+            <TimeTrackerDescription />
           </CardHeader>
           <CardContent>
             <TimeTracker userId={user.id} />
