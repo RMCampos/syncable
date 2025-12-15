@@ -13,6 +13,7 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone', // Enable standalone mode for Docker deployment
   eslint: {
     ignoreDuringBuilds: true,
   },
