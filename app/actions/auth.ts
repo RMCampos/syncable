@@ -1,6 +1,7 @@
 "use server"
 
 import { sql } from "@/lib/db"
+import { getGravatarUrl } from "@/lib/gravatar"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import crypto from "crypto"
@@ -10,6 +11,7 @@ export type User = {
   id: number
   name: string
   email: string
+  gravatarUrl: string
   created_at: Date
   updated_at: Date
 }
@@ -49,7 +51,10 @@ export async function registerUser(formData: FormData) {
       RETURNING id, name, email, created_at, updated_at
     `
 
-    const user = result[0] as User
+    const user = {
+      ...result[0],
+      gravatarUrl: getGravatarUrl(email)
+    } as User
 
     // Create default user settings
     await sql`
@@ -106,7 +111,10 @@ export async function loginUser(formData: FormData) {
       return { success: false, error: "Invalid email or password" }
     }
 
-    const user = users[0] as User
+    const user = {
+      ...users[0],
+      gravatarUrl: getGravatarUrl(email)
+    } as User
 
     // Set a session cookie
     const sessionId = crypto.randomUUID()
@@ -161,7 +169,11 @@ export async function getCurrentUser(): Promise<User | null> {
       return null
     }
 
-    return users[0] as User
+    const user = users[0] as any
+    return {
+      ...user,
+      gravatarUrl: getGravatarUrl(user.email)
+    } as User
   } catch (error) {
     console.error("Error getting current user:", error)
     return null

@@ -1,7 +1,7 @@
 "use client";
 
 import { getCurrentUser, User } from "@/app/actions/auth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,6 +21,7 @@ export function UserNav() {
     id: 0,
     name: "Guest",
     email: "guest@guest.com",
+    gravatarUrl: "",
     created_at: new Date(),
     updated_at: new Date(),
   });
@@ -38,6 +39,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 bg-black/10 text-black font-normal text-lg border border-black">
+            <AvatarImage src={user.gravatarUrl} alt={user.name} />
             <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
