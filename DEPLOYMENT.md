@@ -6,7 +6,15 @@
 - Docker installed on your system
 - PostgreSQL database accessible from your production environment
 
-### Build the Docker Image
+### Option 1: Use Pre-built Image from Docker Hub (Recommended)
+
+The application is automatically built and published to Docker Hub on every push to main:
+
+```bash
+docker pull rmcampos/syncable:latest
+```
+
+### Option 2: Build the Docker Image Locally
 
 ```bash
 docker build -t rmcampos/syncable:latest .
@@ -126,6 +134,17 @@ Make sure your PostgreSQL database is initialized with the schema:
 psql -U your_user -d your_database -f init-db.sql
 ```
 
+## Automated Builds
+
+A GitHub Actions workflow automatically builds and pushes the Docker image to Docker Hub when changes are pushed to the `main` branch.
+
+**Setup Instructions:** See `.github/DOCKER_HUB_SETUP.md` for details on configuring the automated builds.
+
+**Available Tags:**
+- `rmcampos/syncable:latest` - Latest build from main branch
+- `rmcampos/syncable:main-<sha>` - Specific commit builds
+- Multi-architecture support: AMD64 and ARM64
+
 ## Notes
 
 - The Docker image uses Node.js 20 Alpine for minimal size
@@ -133,3 +152,4 @@ psql -U your_user -d your_database -f init-db.sql
 - Uses Next.js standalone output for optimized production bundle
 - Multi-stage build reduces final image size
 - Timezone is set to America/Sao_Paulo in the database connection
+- Images are automatically built and published via GitHub Actions
