@@ -295,7 +295,7 @@ export function TimeTracker({ userId }: { userId: number }) {
 
       {status !== "idle" && (
         <div className="text-center text-sm text-muted-foreground">
-          {status === "working" ? "Currently working" : "On break"} • Started at {startTime?.toLocaleTimeString()}
+          {status === "working" ? "Currently working" : "Currently on break"} • Started at {startTime?.toLocaleTimeString()}
         </div>
       )}
     </div>
