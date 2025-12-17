@@ -26,6 +26,7 @@ export async function registerUser(formData: FormData) {
   const name = formData.get("name") as string
   const email = formData.get("email") as string
   const password = formData.get("password") as string
+  const timezone = formData.get("timezone") as string | null
 
   if (!name || !email || !password) {
     return { success: false, error: "All fields are required" }
@@ -59,7 +60,7 @@ export async function registerUser(formData: FormData) {
     // Create default user settings
     await sql`
       INSERT INTO user_settings (user_id, working_hours, timezone)
-      VALUES (${user.id}, 8, 'UTC')
+      VALUES (${user.id}, 8, ${timezone ?? "UTC"})
     `
 
     // Set a session cookie

@@ -46,6 +46,15 @@ export default function RegisterPage() {
     formData.append("email", email);
     formData.append("password", password);
 
+    // Try to get current timezone from the browser
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      formData.append("timezone", timezone);
+      console.log("Detected timezone:", timezone);
+    } catch (error) {
+      console.error("Error getting timezone:", error);
+    }
+
     const result = await registerUser(formData);
 
     if (result.success) {
