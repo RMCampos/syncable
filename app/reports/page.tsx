@@ -39,8 +39,10 @@ import { Download, Share } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "../actions/auth";
 import { createSharedReport, generateReport } from "../actions/reports";
+import { useTimezone } from "@/components/timezone-provider";
 
 export default function ReportsPage() {
+  const { timezone } = useTimezone()
   const [userId, setUserId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("daily");
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
@@ -120,7 +122,8 @@ export default function ReportsPage() {
         userId,
         startDate,
         endDate,
-        activeTab
+        activeTab,
+        timezone
       );
       console.log("Report generation result:", result);
 
@@ -468,7 +471,7 @@ export default function ReportsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Report Results</CardTitle>
-            <CardDescription>View your time tracking report</CardDescription>
+            <CardDescription>{`View your time tracking report • Timezone: ${timezone}`}</CardDescription>
           </CardHeader>
           <CardContent>
             {reportData ? (

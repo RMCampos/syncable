@@ -5,6 +5,7 @@ import { NoDataPage } from "@/app/shared-report/[token]/no-data-page";
 import { Footer } from "@/components/footer";
 import { PageError } from "@/components/page-error";
 import { PageLoading } from "@/components/page-loading";
+import { useTimezone } from "@/components/timezone-provider";
 import {
   Card,
   CardContent,
@@ -37,6 +38,7 @@ interface DataPageProps {
 }
 
 export function DataPage({ token }: DataPageProps) {
+  const { timezone } = useTimezone();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reportData, setReportData] = useState<any>(null);
@@ -45,8 +47,8 @@ export function DataPage({ token }: DataPageProps) {
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        console.log("Fetching shared report with token:", token);
-        const result = await getSharedReport(token);
+        console.log("Fetching shared report with token:", token, "and timezone:", timezone);
+        const result = await getSharedReport(token, timezone);
         console.log("Shared report result:", result);
 
         if (!result.success) {

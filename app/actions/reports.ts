@@ -41,7 +41,8 @@ export async function generateReport(
   userId: number,
   startDate: Date,
   endDate: Date,
-  reportType: string
+  reportType: string,
+  timezone: string
 ): Promise<{ success: boolean; data?: ReportData; error?: string }> {
   try {
     console.log(
@@ -52,7 +53,9 @@ export async function generateReport(
       "to",
       endDate,
       "type:",
-      reportType
+      reportType,
+      "timezone:",
+      timezone
     );
 
     // Adjust the end date to include the entire day
@@ -88,13 +91,34 @@ export async function generateReport(
 
     console.log("Found entries:", entriesResult.length);
 
+    // Timezone formatter
+    let formatter = null;
+    if (timezone != "UTC") {
+      formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
     // Format the entries
     const entries = entriesResult.map((entry) => {
-      const startTime = new Date(entry.start_time);
-      const endTime = entry.end_time ? new Date(entry.end_time) : null;
+      let startTime = new Date(entry.start_time);
+      let endTime = entry.end_time ? new Date(entry.end_time) : null;
       const duration = Number.parseFloat(entry.duration);
       const breaks = Number.parseFloat(entry.break_time);
       const netWork = duration - breaks;
+
+      if (formatter) {
+        startTime = new Date(formatter.format(startTime));
+        if (endTime) {
+          endTime = new Date(formatter.format(endTime));
+        }
+      }
 
       return {
         id: entry.id,
@@ -229,7 +253,8 @@ export async function createSharedReport(
 
 // Get a shared report by token
 export async function getSharedReport(
-  shareToken: string
+  shareToken: string,
+  timezone: string
 ): Promise<{
   success: boolean;
   data?: { report: SharedReport; reportData: ReportData };
@@ -280,7 +305,8 @@ export async function getSharedReport(
       report.user_id,
       new Date(report.start_date),
       new Date(report.end_date),
-      report.report_type
+      report.report_type,
+      timezone
     );
 
     if (!reportDataResult.success) {
