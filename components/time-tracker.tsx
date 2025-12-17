@@ -65,6 +65,7 @@ export function TimeTracker({ userId }: { userId: number }) {
 
   // Update elapsed time
   useEffect(() => {
+    console.log(`Setting up interval for status: ${status}`)
     let interval: NodeJS.Timeout
 
     if (status === "working" && startTime) {
@@ -76,8 +77,10 @@ export function TimeTracker({ userId }: { userId: number }) {
     } else if (status === "break" && breakStartTime) {
       interval = setInterval(() => {
         const now = new Date()
-        const elapsed = Math.floor((now.getTime() - breakStartTime.getTime()) / 1000) * 1000
-        setBreakTime(elapsed)
+        const elapsedBreak = Math.floor((now.getTime() - breakStartTime.getTime()) / 1000) * 1000
+        const elapsedTotal = Math.floor((now.getTime() - startTime!.getTime()) / 1000) * 1000
+        setElapsedTime(elapsedTotal)
+        setBreakTime(elapsedBreak)
       }, 1000)
     }
 
@@ -90,7 +93,7 @@ export function TimeTracker({ userId }: { userId: number }) {
     try {
       const result = await startTimeEntry(userId)
 
-      if (result.success) {
+      if (result.success && result.data) {
         setStatus("working")
         setActiveTimeEntryId(result.data.id)
         setStartTime(new Date(result.data.start_time))
@@ -125,7 +128,7 @@ export function TimeTracker({ userId }: { userId: number }) {
     try {
       const result = await startBreak(activeTimeEntryId)
 
-      if (result.success) {
+      if (result.success && result.data) {
         setStatus("break")
         setActiveBreakId(result.data.id)
         setBreakStartTime(new Date(result.data.start_time))
