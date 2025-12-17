@@ -51,4 +51,4 @@ CREATE TABLE IF NOT EXISTS breaks (
 );
 
 -- run it with local local like this:
--- docker exec -i db psql -U postgres -d postgres < create_users.sql
+-- docker exec -i db psql -U postgres -d postgres < init-db.sql
