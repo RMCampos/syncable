@@ -1,6 +1,29 @@
 ---
 
 services:
+  db-init:
+    container_name: db-init
+    image: postgres:15.8-bookworm
+    environment:
+      PGPASSWORD: default
+    volumes:
+      - "./init-db.sql:/init-db.sql:ro"
+    command: >
+      bash -c "
+        echo 'Waiting for database to be ready...' &&
+        until pg_isready -h db -U postgres; do
+          echo 'Database not ready, waiting...';
+          sleep 2;
+        done &&
+        echo 'Database ready, running init script...' &&
+        psql -h db -U postgres -d postgres -f /init-db.sql &&
+        echo 'Database initialization complete!'
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
   app:
     container_name: app
     build:
@@ -9,7 +32,11 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:default@db:5432/postgres
       NODE_ENV: development
-    command: yarn dev
+    command: >
+      bash -c "
+        yarn install &&
+        yarn dev
+      "
     ports: 
       - "3000:3000"
     user: root
@@ -20,6 +47,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     healthcheck:
       test: timeout 10s bash -c 'true > /dev/tcp/127.0.0.1/3000'
       interval: 1m30s
