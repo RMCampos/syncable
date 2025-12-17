@@ -208,6 +208,27 @@ export function GeneralSettings({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
+              <Label>Profile Picture</Label>
+              <img
+                src={`https://www.gravatar.com/avatar/${profile.email.trim().toLowerCase().length}?s=100&d=identicon`}
+                alt="Profile Picture"
+                className="w-24 h-24 rounded-full"
+              />
+              <p className="text-sm text-muted-foreground">
+                To change your profile picture, please visit{" "}
+                <a
+                  href="https://gravatar.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline"
+                >
+                  Gravatar
+                </a>
+                .
+              </p>
+            </div>
+
+            <div className="grid gap-2">
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
