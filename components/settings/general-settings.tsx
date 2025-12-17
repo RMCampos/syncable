@@ -61,6 +61,7 @@ export function GeneralSettings({
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [name, setName] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [gravatarUrl, setGravatarUrl] = useState("");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -69,6 +70,14 @@ export function GeneralSettings({
         if (result.success && result.data) {
           setProfile(result.data);
           setName(result.data.name);
+          if (result.data.gravatarUrl) {
+            setGravatarUrl(result.data.gravatarUrl);
+          } else {
+            setGravatarUrl(`https://www.gravatar.com/avatar/${result.data.email
+              .trim()
+              .toLowerCase()
+              .length}?s=100&d=identicon`);
+          }
         } else {
           toast({
             title: "Error Loading Profile",
@@ -210,7 +219,7 @@ export function GeneralSettings({
             <div className="grid gap-2">
               <Label>Profile Picture</Label>
               <img
-                src={`https://www.gravatar.com/avatar/${profile.email.trim().toLowerCase().length}?s=100&d=identicon`}
+                src={gravatarUrl}
                 alt="Profile Picture"
                 className="w-24 h-24 rounded-full"
               />

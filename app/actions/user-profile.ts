@@ -1,6 +1,7 @@
 "use server"
 
 import { sql } from "@/lib/db"
+import { getGravatarUrl } from "@/lib/gravatar"
 import { revalidatePath } from "next/cache"
 
 type DbUserProfile = {
@@ -52,7 +53,10 @@ export async function getUserProfile(userId: number) {
 
     return {
       success: true,
-      data: result[0]
+      data: {
+        ...result[0],
+        gravatarUrl: getGravatarUrl(result[0].email)
+      }
     }
   } catch (error) {
     console.error("Error fetching user profile:", error)
