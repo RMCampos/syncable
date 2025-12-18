@@ -402,7 +402,15 @@ export function GeneralSettings({
       {process.env.NEXT_PUBLIC_APP_VERSION && (
         <div className="mt-4 text-center">
           <p className="text-xs text-muted-foreground">
-            Build {process.env.NEXT_PUBLIC_APP_VERSION}
+            Release{" "}
+            <a
+              href={`https://github.com/RMCampos/syncable/releases/tag/${process.env.NEXT_PUBLIC_APP_VERSION}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground transition-colors"
+            >
+              {process.env.NEXT_PUBLIC_APP_VERSION}
+            </a>
           </p>
         </div>
       )}
