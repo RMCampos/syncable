@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write  # Required for creating releases and pushing tags
+
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/syncable
 
@@ -16,6 +19,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for git log to get commit history
 
       - name: Generate version tag
         id: version
@@ -67,3 +72,195 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a ${{ steps.version.outputs.tag }} -m "Release ${{ steps.version.outputs.tag }}"
           git push origin ${{ steps.version.outputs.tag }}
+
+      - name: Fetch commit history
+        id: commits
+        run: |
+          # Get the previous tag, or use empty string for first release
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            echo "First release detected"
+            # Get all commits for first release
+            COMMITS=$(git log --pretty=format:"%s|||%h|||%an" --no-merges)
+          else
+            echo "Previous tag: $PREV_TAG"
+            # Get commits since last tag
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"%s|||%h|||%an" --no-merges)
+          fi
+
+          # Save commits to file for next step
+          echo "$COMMITS" > /tmp/commits.txt
+
+          # Count commits
+          COMMIT_COUNT=$(echo "$COMMITS" | grep -c "|||" || echo "0")
+          echo "commit_count=${COMMIT_COUNT}" >> $GITHUB_OUTPUT
+          echo "prev_tag=${PREV_TAG}" >> $GITHUB_OUTPUT
+
+          # Display commits found
+          echo "Found ${COMMIT_COUNT} commits"
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          DOCKER_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/syncable"
+          TAG="${{ steps.version.outputs.tag }}"
+          PREV_TAG="${{ steps.commits.outputs.prev_tag }}"
+
+          # Initialize arrays for each commit type
+          declare -a FEATURES=()
+          declare -a FIXES=()
+          declare -a DOCS=()
+          declare -a CI=()
+          declare -a CHORES=()
+          declare -a OTHERS=()
+
+          # Read commits and categorize
+          while IFS='|||' read -r message hash author; do
+            # Skip empty lines
+            [ -z "$message" ] && continue
+
+            # Categorize by conventional commit prefix
+            case "$message" in
+              feat:*|feat\(*)
+                FEATURES+=("- $message (\`$hash\`) by $author")
+                ;;
+              fix:*|fix\(*)
+                FIXES+=("- $message (\`$hash\`) by $author")
+                ;;
+              docs:*|docs\(*)
+                DOCS+=("- $message (\`$hash\`) by $author")
+                ;;
+              ci:*|ci\(*)
+                CI+=("- $message (\`$hash\`) by $author")
+                ;;
+              chore:*|chore\(*|refactor:*|refactor\(*)
+                CHORES+=("- $message (\`$hash\`) by $author")
+                ;;
+              *)
+                OTHERS+=("- $message (\`$hash\`) by $author")
+                ;;
+            esac
+          done < /tmp/commits.txt
+
+          # Build release notes
+          RELEASE_NOTES="## Release ${TAG}"
+          RELEASE_NOTES="${RELEASE_NOTES}\n\n"
+
+          # Add version range info
+          if [ -z "$PREV_TAG" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}**First Release** - All commits since repository creation"
+          else
+            RELEASE_NOTES="${RELEASE_NOTES}**Changes since ${PREV_TAG}**"
+          fi
+          RELEASE_NOTES="${RELEASE_NOTES}\n\n"
+
+          # Add Docker pull command
+          RELEASE_NOTES="${RELEASE_NOTES}### Docker Image\n\n"
+          RELEASE_NOTES="${RELEASE_NOTES}\`\`\`bash\n"
+          RELEASE_NOTES="${RELEASE_NOTES}docker pull ${DOCKER_IMAGE}:${TAG}\n"
+          RELEASE_NOTES="${RELEASE_NOTES}# or use latest\n"
+          RELEASE_NOTES="${RELEASE_NOTES}docker pull ${DOCKER_IMAGE}:latest\n"
+          RELEASE_NOTES="${RELEASE_NOTES}\`\`\`\n\n"
+
+          # Add categorized changes
+          RELEASE_NOTES="${RELEASE_NOTES}### Changes\n\n"
+
+          # Features
+          if [ ${#FEATURES[@]} -gt 0 ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}#### ✨ Features\n\n"
+            for item in "${FEATURES[@]}"; do
+              RELEASE_NOTES="${RELEASE_NOTES}${item}\n"
+            done
+            RELEASE_NOTES="${RELEASE_NOTES}\n"
+          fi
+
+          # Fixes
+          if [ ${#FIXES[@]} -gt 0 ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}#### 🐛 Bug Fixes\n\n"
+            for item in "${FIXES[@]}"; do
+              RELEASE_NOTES="${RELEASE_NOTES}${item}\n"
+            done
+            RELEASE_NOTES="${RELEASE_NOTES}\n"
+          fi
+
+          # Documentation
+          if [ ${#DOCS[@]} -gt 0 ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}#### 📚 Documentation\n\n"
+            for item in "${DOCS[@]}"; do
+              RELEASE_NOTES="${RELEASE_NOTES}${item}\n"
+            done
+            RELEASE_NOTES="${RELEASE_NOTES}\n"
+          fi
+
+          # CI/CD
+          if [ ${#CI[@]} -gt 0 ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}#### 🔧 CI/CD\n\n"
+            for item in "${CI[@]}"; do
+              RELEASE_NOTES="${RELEASE_NOTES}${item}\n"
+            done
+            RELEASE_NOTES="${RELEASE_NOTES}\n"
+          fi
+
+          # Chores
+          if [ ${#CHORES[@]} -gt 0 ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}#### 🧹 Chores & Refactoring\n\n"
+            for item in "${CHORES[@]}"; do
+              RELEASE_NOTES="${RELEASE_NOTES}${item}\n"
+            done
+            RELEASE_NOTES="${RELEASE_NOTES}\n"
+          fi
+
+          # Others
+          if [ ${#OTHERS[@]} -gt 0 ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}#### 📦 Other Changes\n\n"
+            for item in "${OTHERS[@]}"; do
+              RELEASE_NOTES="${RELEASE_NOTES}${item}\n"
+            done
+            RELEASE_NOTES="${RELEASE_NOTES}\n"
+          fi
+
+          # Add footer
+          RELEASE_NOTES="${RELEASE_NOTES}---\n\n"
+          RELEASE_NOTES="${RELEASE_NOTES}_Generated automatically by GitHub Actions_"
+
+          # Save to file for GitHub Release action
+          echo -e "$RELEASE_NOTES" > /tmp/release_notes.md
+
+          # Also save to output for workflow summary
+          {
+            echo 'notes<<EOF'
+            echo -e "$RELEASE_NOTES"
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+          echo "Release notes generated successfully"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.tag }}
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        run: |
+          echo "## Release Created Successfully! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commits included:** ${{ steps.commits.outputs.commit_count }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Docker Image:** \`${{ secrets.DOCKERHUB_USERNAME }}/syncable:${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Start" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/syncable:${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View the full release notes: [Release ${{ steps.version.outputs.tag }}](https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }})" >> $GITHUB_STEP_SUMMARY
