@@ -76,8 +76,11 @@ jobs:
       - name: Fetch commit history
         id: commits
         run: |
-          # Get the previous tag, or use empty string for first release
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          CURRENT_TAG="${{ steps.version.outputs.tag }}"
+
+          # Get the previous tag (excluding the one we just created)
+          # List all tags sorted by creation date, exclude current tag, and get the most recent
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -1 || echo "")
 
           if [ -z "$PREV_TAG" ]; then
             echo "First release detected"
@@ -92,8 +95,13 @@ jobs:
           # Save commits to file for next step
           echo "$COMMITS" > /tmp/commits.txt
 
-          # Count commits
-          COMMIT_COUNT=$(echo "$COMMITS" | grep -c "|||" || echo "0")
+          # Count commits more reliably
+          if [ -z "$COMMITS" ]; then
+            COMMIT_COUNT=0
+          else
+            COMMIT_COUNT=$(echo "$COMMITS" | wc -l)
+          fi
+
           echo "commit_count=${COMMIT_COUNT}" >> $GITHUB_OUTPUT
           echo "prev_tag=${PREV_TAG}" >> $GITHUB_OUTPUT
 
