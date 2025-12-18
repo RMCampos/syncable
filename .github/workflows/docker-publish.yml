@@ -55,6 +55,8 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            NEXT_PUBLIC_APP_VERSION=${{ steps.version.outputs.tag }}
 
       - name: Image digest
         run: echo ${{ steps.meta.outputs.digest }}

@@ -398,6 +398,14 @@ export function GeneralSettings({
           </Button>
         </CardFooter>
       </Card>
+
+      {process.env.NEXT_PUBLIC_APP_VERSION && (
+        <div className="mt-4 text-center">
+          <p className="text-xs text-muted-foreground">
+            Build {process.env.NEXT_PUBLIC_APP_VERSION}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

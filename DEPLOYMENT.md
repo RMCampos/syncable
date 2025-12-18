@@ -17,17 +17,29 @@ docker pull rmcampos/syncable:latest
 ### Option 2: Build the Docker Image Locally
 
 ```bash
-docker build -t rmcampos/syncable:latest .
+docker build --build-arg NEXT_PUBLIC_APP_VERSION=local-snapshot -t rmcampos/syncable:latest .
 ```
 
 ### Run the Container
 
 #### Using environment variables:
 ```bash
-docker run -d \
+docker run -d -p 5432:5432 --rm \
+  --name db \
+  -e POSTGRES_DB="postgres" \
+  -e POSTGRES_USER="postgres" \
+  -e POSTGRES_PASSWORD="default" \
+  postgres:15.8-bookworm
+
+# Then run the create table script, from the project root directory
+docker exec -i db psql -U postgres -d postgres < init-db.sql
+
+DBHOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db)
+
+docker run -d --rm \
   --name syncable \
   -p 3000:3000 \
-  -e DATABASE_URL="postgresql://user:password@host:5432/database" \
+  -e DATABASE_URL="postgresql://postgres:default@$DBHOST:5432/postgres" \
   -e NODE_ENV=production \
   rmcampos/syncable:latest
 ```

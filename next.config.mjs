@@ -14,6 +14,9 @@ try {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone', // Enable standalone mode for Docker deployment
+  env: {
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
