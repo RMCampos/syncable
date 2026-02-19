@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { DEFAULT_TIMEZONE } from "./timezone"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -19,12 +20,12 @@ export function calculateDuration(startTime: Date, endTime: Date | null): number
 }
 
 // Format time with proper 24-hour format for Brazil
-export function formatTimeForDisplay(date: Date): string {
+export function formatTimeForDisplay(date: Date, timezone: string = DEFAULT_TIMEZONE): string {
   return date.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-    timeZone: "America/Sao_Paulo",
+    timeZone: timezone,
   })
 }
 
