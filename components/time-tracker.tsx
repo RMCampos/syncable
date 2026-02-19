@@ -1,8 +1,7 @@
 "use client"
 
-import { endBreak, endTimeEntry, getActiveTimeEntry, startBreak, startTimeEntry } from "@/app/actions/time-entries"
+import { endBreak, endTimeEntry, getActiveTimeEntry, getTotalBreakTime, startBreak, startTimeEntry } from "@/app/actions/time-entries"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { formatDuration } from "@/lib/utils"
 import { Coffee, LogOut, Play } from "lucide-react"
@@ -49,7 +48,15 @@ export function TimeTracker({ userId }: { userId: number }) {
           } else {
             setStatus("working")
           }
+
+          // Load up total break time for the active time entry
+          const breakResult = await getTotalBreakTime(timeEntry.id)
+          console.log("Total break time result:", breakResult)
+          if (breakResult.success && breakResult.data) {
+            setTotalBreakTime(breakResult.data)
+          }
         }
+        
       } catch (error) {
         console.error("Error checking active time entry:", error)
         toast({
@@ -71,8 +78,12 @@ export function TimeTracker({ userId }: { userId: number }) {
     if (status === "working" && startTime) {
       interval = setInterval(() => {
         const now = new Date()
-        const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000
-        setElapsedTime(elapsed)
+        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000
+        if (totalBreakTime > 0) {
+          totalElapsed -= totalBreakTime
+        }
+        setElapsedTime(totalElapsed)
+        setTotalBreakTime(totalBreakTime)
       }, 1000)
     } else if (status === "break" && breakStartTime) {
       interval = setInterval(() => {
@@ -85,7 +96,7 @@ export function TimeTracker({ userId }: { userId: number }) {
     }
 
     return () => clearInterval(interval)
-  }, [status, startTime, breakStartTime])
+  }, [status, startTime, breakStartTime, totalBreakTime])
 
   const handleStartWorking = async () => {
     setIsLoading(true)

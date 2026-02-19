@@ -17,6 +17,7 @@ export default async function DashboardPage() {
 
   // Get dashboard summary data
   const summaryResult = await getDashboardSummary(user.id)
+  console.log("Dashboard summary result:", summaryResult)
   const summary = summaryResult.success ? summaryResult.data : null
 
   const getGreeting = () => {
@@ -165,7 +166,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="col-span-3 space-y-6">
-          <Card className="shadow-sm h-full max-h-[500px] flex flex-col">
+          <Card className="border-t-4 border-t-primary shadow-sm h-full max-h-[500px] flex flex-col">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
               <CardDescription>Your latest time entries</CardDescription>

@@ -1,6 +1,7 @@
 "use server"
 
 import { sql } from "@/lib/db"
+import { formatDuration } from "@/lib/utils"
 
 export type SummaryData = {
   today: {
@@ -70,23 +71,33 @@ export async function getDashboardSummary(
 
     // Today's data
     const todayResult = await sql`
+      WITH te_filtered AS (
+          -- Step 1: Filter the time entries for the specific user and date
+          SELECT 
+              id,
+              EXTRACT(EPOCH FROM (COALESCE(end_time, CURRENT_TIMESTAMP) - start_time)) * 1000 AS duration
+          FROM time_entries
+          WHERE user_id = ${userId}
+            AND start_time >= ${startOfToday}
+            AND start_time <= ${endOfToday}
+      ),
+      break_stats AS (
+          -- Step 2: Aggregate break data per time entry
+          SELECT 
+              time_entry_id,
+              COUNT(*) AS cnt,
+              SUM(EXTRACT(EPOCH FROM (COALESCE(end_time, CURRENT_TIMESTAMP) - start_time)) * 1000) AS break_duration
+          FROM breaks
+          WHERE time_entry_id IN (SELECT id FROM te_filtered)
+          GROUP BY time_entry_id
+      )
+      -- Step 3: Join and sum everything once
       SELECT 
-        COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(te.end_time, CURRENT_TIMESTAMP) - te.start_time)) * 1000), 0)::float AS total_duration,
-        COALESCE(SUM(
-          COALESCE(
-            (SELECT SUM(EXTRACT(EPOCH FROM (COALESCE(b.end_time, CURRENT_TIMESTAMP) - b.start_time)) * 1000)
-             FROM breaks b
-             WHERE b.time_entry_id = te.id),
-            0
-          )
-        ), 0)::float AS total_break_time,
-        COUNT(DISTINCT b.id) AS break_count
-      FROM time_entries te
-      LEFT JOIN breaks b ON te.id = b.time_entry_id
-      WHERE 
-        te.user_id = ${userId} AND 
-        te.start_time >= ${startOfToday} AND 
-        te.start_time < ${endOfToday}
+          COALESCE(SUM(te.duration), 0)::FLOAT AS total_duration,
+          COALESCE(SUM(bs.break_duration), 0)::FLOAT AS total_break_time,
+          COALESCE(SUM(bs.cnt), 0)::INT AS break_count
+      FROM te_filtered te
+      LEFT JOIN break_stats bs ON te.id = bs.time_entry_id;
     `
 
     // Yesterday's data
@@ -188,6 +199,7 @@ export async function getDashboardSummary(
     const todayDuration = todayResult[0].total_duration
     const todayBreakTime = todayResult[0].total_break_time
     const todayNetDuration = todayDuration - todayBreakTime
+    console.log(`Today's duration: ${formatDuration(todayDuration)}, break time: ${formatDuration(todayBreakTime)}, net duration: ${formatDuration(todayNetDuration)}`)
 
     const yesterdayDuration = yesterdayResult[0].total_duration
     const yesterdayBreakTime = yesterdayResult[0].total_break_time

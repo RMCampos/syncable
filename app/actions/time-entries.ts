@@ -142,6 +142,30 @@ export async function getActiveTimeEntry(userId: number) {
   }
 }
 
+// Get total break time for a time entry
+export async function getTotalBreakTime(timeEntryId: number) {
+  try {
+    const result = await sql`
+      SELECT 
+        COALESCE(
+          SUM(
+            EXTRACT(EPOCH FROM (
+              COALESCE(end_time, CURRENT_TIMESTAMP) - start_time
+            )) * 1000
+          ), 
+          0
+        ) AS total_break_time
+      FROM breaks
+      WHERE time_entry_id = ${timeEntryId}
+    `
+
+    return { success: true, data: Number(result[0].total_break_time) }
+  } catch (error) {
+    console.error("Error getting total break time:", error)
+    return { success: false, error: "Failed to get total break time" }
+  }
+}
+
 // Get recent time entries for a user
 export async function getRecentTimeEntries(userId: number, limit = 5) {
   try {
