@@ -18,13 +18,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_APP_VERSION
-
-# Set environment variables for build
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-ENV NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION}
-
 # Build the Next.js application
 RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 RUN yarn build
@@ -33,6 +26,12 @@ RUN yarn build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
+ARG NEXT_PUBLIC_APP_VERSION
+
+# Set environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+ENV NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION}
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
