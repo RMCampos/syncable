@@ -8,7 +8,7 @@ export function TimeTrackerDescription() {
 
   return (
     <CardDescription>
-      Track your time entries, breaks, and exits
+      Track your active work session
       {!isLoading && ` • Timezone: ${timezone}`}
     </CardDescription>
   )
