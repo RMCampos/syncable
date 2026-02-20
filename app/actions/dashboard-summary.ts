@@ -33,41 +33,68 @@ export async function getDashboardSummary(
   userId: number,
 ): Promise<{ success: boolean; data?: SummaryData; error?: string }> {
   try {
-    // Get today's data
-    const today = new Date()
-    const startOfToday = new Date(today)
-    startOfToday.setHours(0, 0, 0, 0)
-    const endOfToday = new Date(today)
-    endOfToday.setHours(23, 59, 59, 999)
+    const tz = 'America/Sao_Paulo'
 
-    // Get yesterday's data for comparison
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-    const startOfYesterday = new Date(yesterday)
-    startOfYesterday.setHours(0, 0, 0, 0)
-    const endOfYesterday = new Date(yesterday)
-    endOfYesterday.setHours(23, 59, 59, 999)
+    // Get year, month (0-11), day (1-31) in BRT timezone from a given Date
+    const getBrParts = (d: Date) => {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        year: 'numeric', month: 'numeric', day: 'numeric'
+      }).formatToParts(d)
 
-    // Get start of week
-    const startOfWeek = new Date(today)
-    startOfWeek.setDate(today.getDate() - today.getDay()) // Start from Sunday
-    startOfWeek.setHours(0, 0, 0, 0)
+      return {
+        year: parseInt(parts.find(p => p.type === 'year')!.value),
+        month: parseInt(parts.find(p => p.type === 'month')!.value) - 1,
+        date: parseInt(parts.find(p => p.type === 'day')!.value)
+      }
+    }
 
-    // Get start of last week
-    const startOfLastWeek = new Date(startOfWeek)
-    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7)
-    const endOfLastWeek = new Date(startOfWeek)
-    endOfLastWeek.setMilliseconds(-1)
+    const brParts = getBrParts(new Date())
 
-    // Get start of month
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    startOfMonth.setHours(0, 0, 0, 0)
+    const createBrDate = (y: number, m: number, d: number, isEndOfDay: boolean) => {
+      const pad = (n: number) => String(n).padStart(2, '0')
+      const timeStr = isEndOfDay ? "23:59:59.999" : "00:00:00.000"
+      return new Date(`${y}-${pad(m + 1)}-${pad(d)}T${timeStr}-03:00`)
+    }
 
-    // Get start of last month
-    const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-    startOfLastMonth.setHours(0, 0, 0, 0)
-    const endOfLastMonth = new Date(startOfMonth)
-    endOfLastMonth.setMilliseconds(-1)
+    const getMathDate = (y: number, m: number, d: number) => new Date(y, m, d)
+
+    // Today
+    const { year, month, date } = brParts
+    const todayMath = getMathDate(year, month, date)
+
+    const startOfToday = createBrDate(year, month, date, false)
+    const endOfToday = createBrDate(year, month, date, true)
+
+    // Yesterday
+    const yesterdayMath = new Date(todayMath)
+    yesterdayMath.setDate(yesterdayMath.getDate() - 1)
+    const startOfYesterday = createBrDate(yesterdayMath.getFullYear(), yesterdayMath.getMonth(), yesterdayMath.getDate(), false)
+    const endOfYesterday = createBrDate(yesterdayMath.getFullYear(), yesterdayMath.getMonth(), yesterdayMath.getDate(), true)
+
+    // This week (starting Sunday)
+    const startOfWeekMath = new Date(todayMath)
+    startOfWeekMath.setDate(startOfWeekMath.getDate() - startOfWeekMath.getDay())
+    const startOfWeek = createBrDate(startOfWeekMath.getFullYear(), startOfWeekMath.getMonth(), startOfWeekMath.getDate(), false)
+
+    // Last week
+    const startOfLastWeekMath = new Date(startOfWeekMath)
+    startOfLastWeekMath.setDate(startOfLastWeekMath.getDate() - 7)
+    const startOfLastWeek = createBrDate(startOfLastWeekMath.getFullYear(), startOfLastWeekMath.getMonth(), startOfLastWeekMath.getDate(), false)
+
+    const endOfLastWeekMath = new Date(startOfWeekMath)
+    endOfLastWeekMath.setDate(endOfLastWeekMath.getDate() - 1)
+    const endOfLastWeek = createBrDate(endOfLastWeekMath.getFullYear(), endOfLastWeekMath.getMonth(), endOfLastWeekMath.getDate(), true)
+
+    // This month
+    const startOfMonth = createBrDate(year, month, 1, false)
+
+    // Last month
+    const startOfLastMonthMath = new Date(year, month - 1, 1)
+    const startOfLastMonth = createBrDate(startOfLastMonthMath.getFullYear(), startOfLastMonthMath.getMonth(), 1, false)
+
+    const endOfLastMonthMath = new Date(year, month, 0) // Last day of last month
+    const endOfLastMonth = createBrDate(endOfLastMonthMath.getFullYear(), endOfLastMonthMath.getMonth(), endOfLastMonthMath.getDate(), true)
 
     // Today's data
     const todayResult = await sql`

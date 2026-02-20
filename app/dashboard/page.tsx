@@ -17,7 +17,6 @@ export default async function DashboardPage() {
 
   // Get dashboard summary data
   const summaryResult = await getDashboardSummary(user.id)
-  console.log("Dashboard summary result:", summaryResult)
   const summary = summaryResult.success ? summaryResult.data : null
 
   const getGreeting = () => {

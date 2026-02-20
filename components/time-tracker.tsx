@@ -56,7 +56,7 @@ export function TimeTracker({ userId }: { userId: number }) {
             setTotalBreakTime(breakResult.data)
           }
         }
-        
+
       } catch (error) {
         console.error("Error checking active time entry:", error)
         toast({
@@ -78,12 +78,8 @@ export function TimeTracker({ userId }: { userId: number }) {
     if (status === "working" && startTime) {
       interval = setInterval(() => {
         const now = new Date()
-        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000
-        if (totalBreakTime > 0) {
-          totalElapsed -= totalBreakTime
-        }
+        const totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000
         setElapsedTime(totalElapsed)
-        setTotalBreakTime(totalBreakTime)
       }, 1000)
     } else if (status === "break" && breakStartTime) {
       interval = setInterval(() => {
