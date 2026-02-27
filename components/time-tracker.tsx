@@ -70,29 +70,19 @@ export function TimeTracker({ userId }: { userId: number }) {
     checkActiveTimeEntry()
   }, [userId, refreshTrigger])
 
-  // Update elapsed time
+  // Compute elapsed time once when status/startTime/breakStartTime changes (no live ticker)
   useEffect(() => {
-    console.log(`Setting up interval for status: ${status}`)
-    let interval: NodeJS.Timeout
-
+    const now = new Date()
     if (status === "working" && startTime) {
-      interval = setInterval(() => {
-        const now = new Date()
-        const totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000
-        setElapsedTime(totalElapsed)
-      }, 1000)
+      const totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000
+      setElapsedTime(totalElapsed)
     } else if (status === "break" && breakStartTime) {
-      interval = setInterval(() => {
-        const now = new Date()
-        const elapsedBreak = Math.floor((now.getTime() - breakStartTime.getTime()) / 1000) * 1000
-        const elapsedTotal = Math.floor((now.getTime() - startTime!.getTime()) / 1000) * 1000
-        setElapsedTime(elapsedTotal)
-        setBreakTime(elapsedBreak)
-      }, 1000)
+      const elapsedBreak = Math.floor((now.getTime() - breakStartTime.getTime()) / 1000) * 1000
+      const elapsedTotal = Math.floor((now.getTime() - startTime!.getTime()) / 1000) * 1000
+      setElapsedTime(elapsedTotal)
+      setBreakTime(elapsedBreak)
     }
-
-    return () => clearInterval(interval)
-  }, [status, startTime, breakStartTime, totalBreakTime])
+  }, [status, startTime, breakStartTime])
 
   const handleStartWorking = async () => {
     setIsLoading(true)
