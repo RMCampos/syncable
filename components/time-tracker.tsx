@@ -2,11 +2,13 @@
 
 import { endBreak, endTimeEntry, getActiveTimeEntry, getTotalBreakTime, startBreak, startTimeEntry } from "@/app/actions/time-entries"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { formatDuration } from "@/lib/utils"
-import { Coffee, LogOut, Play } from "lucide-react"
+import { Coffee, LogOut, Play, RefreshCw } from "lucide-react"
 import { useEffect, useState } from "react"
 import { ManualTimeEntry } from "./manual-time-entry"
+import { TimeTrackerDescription } from "./time-tracker-description"
 
 export function TimeTracker({ userId }: { userId: number }) {
   const [status, setStatus] = useState<"idle" | "working" | "break">("idle")
@@ -18,6 +20,7 @@ export function TimeTracker({ userId }: { userId: number }) {
   const [breakTime, setBreakTime] = useState<number>(0)
   const [totalBreakTime, setTotalBreakTime] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   // Create a custom event to notify other components when time entries change
@@ -29,46 +32,61 @@ export function TimeTracker({ userId }: { userId: number }) {
     console.log("Dispatched timeEntryUpdated event")
   }
 
-  // Check for active time entry on component mount
-  useEffect(() => {
-    const checkActiveTimeEntry = async () => {
-      try {
-        const result = await getActiveTimeEntry(userId)
+  const checkActiveTimeEntry = async () => {
+    try {
+      const result = await getActiveTimeEntry(userId)
 
-        if (result.success && result.data) {
-          const { timeEntry, activeBreak } = result.data
+      if (result.success && result.data) {
+        const { timeEntry, activeBreak } = result.data
 
-          setActiveTimeEntryId(timeEntry.id)
-          setStartTime(new Date(timeEntry.start_time))
+        setActiveTimeEntryId(timeEntry.id)
+        setStartTime(new Date(timeEntry.start_time))
 
-          if (activeBreak) {
-            setStatus("break")
-            setActiveBreakId(activeBreak.id)
-            setBreakStartTime(new Date(activeBreak.start_time))
-          } else {
-            setStatus("working")
-          }
-
-          // Load up total break time for the active time entry
-          const breakResult = await getTotalBreakTime(timeEntry.id)
-          console.log("Total break time result:", breakResult)
-          if (breakResult.success && breakResult.data) {
-            setTotalBreakTime(breakResult.data)
-          }
+        if (activeBreak) {
+          setStatus("break")
+          setActiveBreakId(activeBreak.id)
+          setBreakStartTime(new Date(activeBreak.start_time))
+        } else {
+          setStatus("working")
         }
 
-      } catch (error) {
-        console.error("Error checking active time entry:", error)
-        toast({
-          title: "Error",
-          description: "Failed to check active time entries. Please refresh the page.",
-          variant: "destructive",
-        })
+        // Load up total break time for the active time entry
+        const breakResult = await getTotalBreakTime(timeEntry.id)
+        console.log("Total break time result:", breakResult)
+        if (breakResult.success && breakResult.data) {
+          setTotalBreakTime(breakResult.data)
+        }
+      } else {
+        setStatus("idle")
+        setActiveTimeEntryId(null)
+        setActiveBreakId(null)
+        setStartTime(null)
+        setBreakStartTime(null)
+        setElapsedTime(0)
+        setBreakTime(0)
+        setTotalBreakTime(0)
       }
-    }
 
+    } catch (error) {
+      console.error("Error checking active time entry:", error)
+      toast({
+        title: "Error",
+        description: "Failed to check active time entries. Please refresh the page.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Check for active time entry on component mount
+  useEffect(() => {
     checkActiveTimeEntry()
   }, [userId, refreshTrigger])
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    await checkActiveTimeEntry()
+    setIsRefreshing(false)
+  }
 
   // Compute elapsed time once when status/startTime/breakStartTime changes (no live ticker)
   useEffect(() => {
@@ -262,6 +280,24 @@ export function TimeTracker({ userId }: { userId: number }) {
   }
 
   return (
+    <Card className="border-t-4 border-t-primary shadow-sm">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Time Tracker</CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            title="Refresh time tracker"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
+        <TimeTrackerDescription />
+      </CardHeader>
+      <CardContent>
     <div className="space-y-6">
       <div className="flex flex-col items-center justify-center py-6 space-y-4">
         <div className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 ${getStatusColor()}`}>
@@ -334,5 +370,7 @@ export function TimeTracker({ userId }: { userId: number }) {
         </div>
       )}
     </div>
+      </CardContent>
+    </Card>
   )
 }
