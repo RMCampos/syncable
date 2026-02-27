@@ -2,7 +2,6 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
 import { RecentEntries } from "@/components/recent-entries"
 import { TimeTracker } from "@/components/time-tracker"
-import { TimeTrackerDescription } from "@/components/time-tracker-description"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDuration } from "@/lib/utils"
@@ -153,15 +152,7 @@ export default async function DashboardPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-4 space-y-6">
-          <Card className="border-t-4 border-t-primary shadow-sm">
-            <CardHeader>
-              <CardTitle>Time Tracker</CardTitle>
-              <TimeTrackerDescription />
-            </CardHeader>
-            <CardContent>
-              <TimeTracker userId={user.id} />
-            </CardContent>
-          </Card>
+          <TimeTracker userId={user.id} />
         </div>
 
         <div className="col-span-3 space-y-6">

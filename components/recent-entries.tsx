@@ -90,16 +90,9 @@ export function RecentEntries({ userId }: { userId: number }) {
     }
   }, [userId])
 
-  // Initial fetch and polling
+  // Initial fetch on mount
   useEffect(() => {
     fetchEntries()
-
-    // Set up polling every 30 seconds
-    const intervalId = setInterval(() => {
-      fetchEntries()
-    }, 30000)
-
-    return () => clearInterval(intervalId)
   }, [userId, refreshKey])
 
   const handleDeleteEntry = async () => {
