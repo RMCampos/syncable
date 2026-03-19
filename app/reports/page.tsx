@@ -35,7 +35,20 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import { formatDuration, formatDateForDisplay } from "@/lib/utils";
-import { Calendar, Download, ExternalLink, FileText, Filter, PieChart, Share, Table as TableIcon, Trash2 } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  Clock,
+  Coffee,
+  Download,
+  ExternalLink,
+  FileText,
+  Filter,
+  PieChart,
+  Share,
+  Table as TableIcon,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "../actions/auth";
 import { createSharedReport, generateReport, getUserSharedReports, deleteSharedReport, deleteSharedReports, type SharedReport } from "../actions/reports";
@@ -619,6 +632,64 @@ export default function ReportsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {reportData?.summary && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-4">
+            <Card className="hover:shadow-lg transition-all border-l-4 border-l-blue-500 bg-gradient-to-br from-white to-blue-50/50 dark:from-background dark:to-background overflow-hidden relative">
+              <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-500/10 blur-2xl" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Worked Time</CardTitle>
+                <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Clock className="h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-foreground">
+                  {formatDuration(reportData.summary.totalDuration)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 font-medium opacity-80">
+                  Total tracked in selected range
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-all border-l-4 border-l-orange-500 bg-gradient-to-br from-white to-orange-50/50 dark:from-background dark:to-background overflow-hidden relative">
+              <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-orange-500/10 blur-2xl" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Break Time</CardTitle>
+                <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                  <Coffee className="h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-foreground">
+                  {formatDuration(reportData.summary.totalBreaks)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 font-medium opacity-80">
+                  Total pauses in selected range
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-all border-l-4 border-l-green-500 bg-gradient-to-br from-white to-green-50/50 dark:from-background dark:to-background overflow-hidden relative">
+              <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-green-500/10 blur-2xl" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Net Work Time</CardTitle>
+                <div className="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+                  <Activity className="h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-foreground">
+                  {formatDuration(reportData.summary.totalNetWork)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 font-medium opacity-80">
+                  Worked time minus breaks
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Results Section */}
         {reportData && (
