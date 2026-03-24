@@ -19,14 +19,17 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
 import { useTimezone } from "@/components/timezone-provider"
 import { createDateInTimezone, formatDateForInput, formatTimeForInput } from "@/lib/timezone"
-import { Edit, PlusCircle, Trash2 } from "lucide-react"
+import { Edit, PlusCircle, Trash2, FileText } from "lucide-react"
 import { useState } from "react"
+import { RichTextEditor } from "@/components/rich-text-editor"
+import { Descendant } from "slate"
 
 interface EditTimeEntryProps {
   userId: number
   timeEntryId: number
   initialStartTime: Date
   initialEndTime: Date | null
+  initialObservations?: string | null
   breaks: {
     id: number
     startTime: Date
@@ -40,6 +43,7 @@ export function EditTimeEntry({
   timeEntryId,
   initialStartTime,
   initialEndTime,
+  initialObservations,
   breaks,
   onSuccess,
 }: EditTimeEntryProps) {
@@ -52,6 +56,20 @@ export function EditTimeEntry({
   const [date, setDate] = useState(formatDateForInput(initialStartTime, BRAZIL_TIMEZONE))
   const [startTime, setStartTime] = useState(formatTimeForInput(initialStartTime, BRAZIL_TIMEZONE))
   const [endTime, setEndTime] = useState(initialEndTime ? formatTimeForInput(initialEndTime, BRAZIL_TIMEZONE) : "")
+
+  // Initialize observations
+  const getInitialObservations = (): Descendant[] => {
+    if (!initialObservations) {
+      return [{ type: 'paragraph', children: [{ text: '' }] }]
+    }
+    try {
+      return JSON.parse(initialObservations)
+    } catch (e) {
+      return [{ type: 'paragraph', children: [{ text: initialObservations }] }]
+    }
+  }
+
+  const [observations, setObservations] = useState<Descendant[]>(getInitialObservations())
 
   const [breakItems, setBreakItems] = useState(
     breaks.map((breakItem) => ({
@@ -119,7 +137,13 @@ export function EditTimeEntry({
       }
 
       // Update the time entry
-      const updateResult = await updateTimeEntry(timeEntryId, startDateTime, endDateTime, userId)
+      const updateResult = await updateTimeEntry(
+        timeEntryId, 
+        startDateTime, 
+        endDateTime, 
+        userId,
+        JSON.stringify(observations)
+      )
 
       if (!updateResult.success) {
         throw new Error(updateResult.error || "Failed to update time entry")
@@ -270,9 +294,28 @@ export function EditTimeEntry({
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Break
             </Button>
+
+            <Separator />
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 mb-2 pt-2">
+                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <Label className="text-sm font-semibold">Observations</Label>
+              </div>
+              <div className="border rounded-lg overflow-hidden">
+                <RichTextEditor
+                  value={observations}
+                  onChange={setObservations}
+                  mode="controlled"
+                  minHeight="120px"
+                  maxHeight="300px"
+                  placeholder="What did you work on?"
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>

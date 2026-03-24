@@ -97,7 +97,7 @@ export async function getDashboardSummary(
     const endOfLastMonth = createBrDate(endOfLastMonthMath.getFullYear(), endOfLastMonthMath.getMonth(), endOfLastMonthMath.getDate(), true)
 
     // Today's data
-    const todayResult = await sql`
+    const todayResult = (await sql`
       WITH te_filtered AS (
           -- Step 1: Filter the time entries for the specific user and date
           SELECT 
@@ -125,10 +125,10 @@ export async function getDashboardSummary(
           COALESCE(SUM(bs.cnt), 0)::INT AS break_count
       FROM te_filtered te
       LEFT JOIN break_stats bs ON te.id = bs.time_entry_id;
-    `
+    `) as { total_duration: number; total_break_time: number; break_count: number }[]
 
     // Yesterday's data
-    const yesterdayResult = await sql`
+    const yesterdayResult = (await sql`
       SELECT 
         COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(te.end_time, CURRENT_TIMESTAMP) - te.start_time)) * 1000), 0)::float AS total_duration,
         COALESCE(SUM(
@@ -144,10 +144,10 @@ export async function getDashboardSummary(
         te.user_id = ${userId} AND 
         te.start_time >= ${startOfYesterday} AND 
         te.start_time < ${endOfYesterday}
-    `
+    `) as { total_duration: number; total_break_time: number }[]
 
     // This week's data
-    const weekResult = await sql`
+    const weekResult = (await sql`
       SELECT 
         COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(te.end_time, CURRENT_TIMESTAMP) - te.start_time)) * 1000), 0)::float AS total_duration,
         COALESCE(SUM(
@@ -163,10 +163,10 @@ export async function getDashboardSummary(
         te.user_id = ${userId} AND 
         te.start_time >= ${startOfWeek} AND 
         te.start_time <= ${endOfToday}
-    `
+    `) as { total_duration: number; total_break_time: number }[]
 
     // Last week's data
-    const lastWeekResult = await sql`
+    const lastWeekResult = (await sql`
       SELECT 
         COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(te.end_time, CURRENT_TIMESTAMP) - te.start_time)) * 1000), 0)::float AS total_duration,
         COALESCE(SUM(
@@ -182,10 +182,10 @@ export async function getDashboardSummary(
         te.user_id = ${userId} AND 
         te.start_time >= ${startOfLastWeek} AND 
         te.start_time < ${endOfLastWeek}
-    `
+    `) as { total_duration: number; total_break_time: number }[]
 
     // This month's data
-    const monthResult = await sql`
+    const monthResult = (await sql`
       SELECT 
         COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(te.end_time, CURRENT_TIMESTAMP) - te.start_time)) * 1000), 0)::float AS total_duration,
         COALESCE(SUM(
@@ -201,10 +201,10 @@ export async function getDashboardSummary(
         te.user_id = ${userId} AND 
         te.start_time >= ${startOfMonth} AND 
         te.start_time <= ${endOfToday}
-    `
+    `) as { total_duration: number; total_break_time: number }[]
 
     // Last month's data
-    const lastMonthResult = await sql`
+    const lastMonthResult = (await sql`
       SELECT 
         COALESCE(SUM(EXTRACT(EPOCH FROM (COALESCE(te.end_time, CURRENT_TIMESTAMP) - te.start_time)) * 1000), 0)::float AS total_duration,
         COALESCE(SUM(
@@ -220,7 +220,7 @@ export async function getDashboardSummary(
         te.user_id = ${userId} AND 
         te.start_time >= ${startOfLastMonth} AND 
         te.start_time < ${endOfLastMonth}
-    `
+    `) as { total_duration: number; total_break_time: number }[]
 
     // Calculate percent changes
     const todayDuration = todayResult[0].total_duration
@@ -272,7 +272,7 @@ export async function getDashboardSummary(
           breakTime: todayBreakTime,
           netDuration: todayNetDuration,
           percentChange: todayPercentChange,
-          breakCount: Number.parseInt(todayResult[0].break_count) || 0,
+          breakCount: todayResult[0].break_count || 0,
         },
         week: {
           duration: weekDuration,
@@ -288,7 +288,7 @@ export async function getDashboardSummary(
         },
         todayBreaks: {
           totalTime: todayBreakTime,
-          count: Number.parseInt(todayResult[0].break_count) || 0,
+          count: todayResult[0].break_count || 0,
         },
       },
     }

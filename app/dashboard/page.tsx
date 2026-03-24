@@ -1,29 +1,47 @@
-import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
-import { RecentEntries } from "@/components/recent-entries"
-import { TimeTracker } from "@/components/time-tracker"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatDuration } from "@/lib/utils"
-import { Activity, BarChart, Calendar, Clock, Coffee, TrendingUp } from "lucide-react"
-import Link from "next/link"
-import { requireAuth } from "../actions/auth"
-import { getDashboardSummary } from "../actions/dashboard-summary"
+import { DashboardHeader } from "@/components/dashboard-header";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { RecentEntries } from "@/components/recent-entries";
+import { TimeTracker } from "@/components/time-tracker";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { formatDuration } from "@/lib/format-duration";
+import {
+  Activity,
+  BarChart,
+  Calendar,
+  Clock,
+  Coffee,
+  TrendingUp,
+} from "lucide-react";
+import Link from "next/link";
+import { requireAuth } from "../actions/auth";
+import { getDashboardSummary } from "../actions/dashboard-summary";
+import { getDashboardInsights } from "../actions/dashboard-insights";
+import { ReportInsights } from "@/components/report-insights";
 
 export default async function DashboardPage() {
   // Check if user is authenticated
-  const user = await requireAuth()
+  const user = await requireAuth();
 
   // Get dashboard summary data
-  const summaryResult = await getDashboardSummary(user.id)
-  const summary = summaryResult.success ? summaryResult.data : null
+  const summaryResult = await getDashboardSummary(user.id);
+  const summary = summaryResult.success ? summaryResult.data : null;
+
+  const insightsResult = await getDashboardInsights(user.id);
+  const insights = insightsResult.success ? insightsResult.data : null;
 
   const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return "Good morning"
-    if (hour < 18) return "Good afternoon"
-    return "Good evening"
-  }
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
 
   return (
     <DashboardShell>
@@ -44,11 +62,15 @@ export default async function DashboardPage() {
         </div>
       </DashboardHeader>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="space-y-6">
+        {insights && <ReportInsights insightsData={insights} />}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-lg transition-all border-l-4 border-l-blue-500 bg-gradient-to-br from-white to-blue-50/50 dark:from-background dark:to-background overflow-hidden relative">
           <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-500/10 blur-2xl" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Today</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Today
+            </CardTitle>
             <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
               <Clock className="h-4 w-4" />
             </div>
@@ -60,8 +82,14 @@ export default async function DashboardPage() {
             <p className="text-xs text-muted-foreground mt-2 flex items-center font-medium">
               {summary && summary.today.percentChange !== 0 ? (
                 <>
-                  <span className={`flex items-center ${summary.today.percentChange > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                    {summary.today.percentChange > 0 ? <TrendingUp className="mr-1 h-3 w-3" /> : <TrendingUp className="mr-1 h-3 w-3 rotate-180" />}
+                  <span
+                    className={`flex items-center ${summary.today.percentChange > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                  >
+                    {summary.today.percentChange > 0 ? (
+                      <TrendingUp className="mr-1 h-3 w-3" />
+                    ) : (
+                      <TrendingUp className="mr-1 h-3 w-3 rotate-180" />
+                    )}
                     {Math.abs(summary.today.percentChange)}%
                   </span>
                   <span className="ml-1 opacity-80">from yesterday</span>
@@ -76,7 +104,9 @@ export default async function DashboardPage() {
         <Card className="hover:shadow-lg transition-all border-l-4 border-l-green-500 bg-gradient-to-br from-white to-green-50/50 dark:from-background dark:to-background overflow-hidden relative">
           <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-green-500/10 blur-2xl" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">This Week</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              This Week
+            </CardTitle>
             <div className="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
               <Calendar className="h-4 w-4" />
             </div>
@@ -88,8 +118,14 @@ export default async function DashboardPage() {
             <p className="text-xs text-muted-foreground mt-2 flex items-center font-medium">
               {summary && summary.week.percentChange !== 0 ? (
                 <>
-                  <span className={`flex items-center ${summary.week.percentChange > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                    {summary.week.percentChange > 0 ? <TrendingUp className="mr-1 h-3 w-3" /> : <TrendingUp className="mr-1 h-3 w-3 rotate-180" />}
+                  <span
+                    className={`flex items-center ${summary.week.percentChange > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                  >
+                    {summary.week.percentChange > 0 ? (
+                      <TrendingUp className="mr-1 h-3 w-3" />
+                    ) : (
+                      <TrendingUp className="mr-1 h-3 w-3 rotate-180" />
+                    )}
                     {Math.abs(summary.week.percentChange)}%
                   </span>
                   <span className="ml-1 opacity-80">from last week</span>
@@ -104,7 +140,9 @@ export default async function DashboardPage() {
         <Card className="hover:shadow-lg transition-all border-l-4 border-l-purple-500 bg-gradient-to-br from-white to-purple-50/50 dark:from-background dark:to-background overflow-hidden relative">
           <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-purple-500/10 blur-2xl" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              This Month
+            </CardTitle>
             <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
               <Activity className="h-4 w-4" />
             </div>
@@ -116,8 +154,14 @@ export default async function DashboardPage() {
             <p className="text-xs text-muted-foreground mt-2 flex items-center font-medium">
               {summary && summary.month.percentChange !== 0 ? (
                 <>
-                  <span className={`flex items-center ${summary.month.percentChange > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                    {summary.month.percentChange > 0 ? <TrendingUp className="mr-1 h-3 w-3" /> : <TrendingUp className="mr-1 h-3 w-3 rotate-180" />}
+                  <span
+                    className={`flex items-center ${summary.month.percentChange > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                  >
+                    {summary.month.percentChange > 0 ? (
+                      <TrendingUp className="mr-1 h-3 w-3" />
+                    ) : (
+                      <TrendingUp className="mr-1 h-3 w-3 rotate-180" />
+                    )}
                     {Math.abs(summary.month.percentChange)}%
                   </span>
                   <span className="ml-1 opacity-80">from last month</span>
@@ -132,14 +176,18 @@ export default async function DashboardPage() {
         <Card className="hover:shadow-lg transition-all border-l-4 border-l-orange-500 bg-gradient-to-br from-white to-orange-50/50 dark:from-background dark:to-background overflow-hidden relative">
           <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-orange-500/10 blur-2xl" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Breaks Today</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Breaks Today
+            </CardTitle>
             <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
               <Coffee className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">
-              {summary ? formatDuration(summary.todayBreaks.totalTime) : "0h 00m"}
+              {summary
+                ? formatDuration(summary.todayBreaks.totalTime)
+                : "0h 00m"}
             </div>
             <p className="text-xs text-muted-foreground mt-2 font-medium opacity-80">
               {summary
@@ -169,6 +217,7 @@ export default async function DashboardPage() {
           </Card>
         </div>
       </div>
+      </div>
     </DashboardShell>
-  )
+  );
 }

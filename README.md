@@ -1,87 +1,90 @@
+# Syncable - Gestão de Ponto & Payroll Dashboard
+
+Plataforma moderna, intuitiva e responsiva desenvolvida para profissionais e empresas que buscam simplicidade e precisão no controle de jornada. O **Syncable** elimina a burocracia do registro de ponto, oferecendo uma experiência focada no que realmente importa: seu tempo.
+
+<h1 align="center">
+  <img alt="Banner do Syncable" title="#Banner" style="object-fit: cover; width: 100%; max-height: 520px" src="public/preview.webp" />
+</h1>
+
+---
+
+## 🚀 Funcionalidades que facilitam sua Jornada
+
+O Syncable foi desenhado para ser seu aliado no dia a dia. Confira como a plataforma simplifica sua gestão:
+
+### 1. ⏱️ Controle de Tempo Inteligente
+
+- **Registro em um Clique:** Bata o ponto de entrada, pausa ou saída instantaneamente.
+- **Cronômetro em Tempo Real:** Acompanhe exatamente quanto tempo você já trabalhou no dia.
+- **🕒 Entrada/Saída Atrasada:** Esqueceu de bater o ponto? Sem problemas. Ajuste seu horário de início ou fim retroativamente com facilidade.
+- **Pausas Flexíveis:** Gestão completa de intervalos para garantir que seu descanso seja computado corretamente.
+
+### 2. 📊 Insights e Métricas Claras
+
+- **Dashboard Visual:** Entenda sua produtividade através de cards intuitivos (Total Trabalhado, Tempo de Pausa, Horas Restantes).
+- **Gráficos Dinâmicos:** Visualize seu desempenho semanal e mensal de forma gráfica e elegante.
+- **Status Instantâneo:** Saiba se você está "Em Atividade", "Em Pausa" ou se sua jornada já foi concluída.
+
+### 3. 📄 Relatórios Profissionais em Segundos
+
+- **Geração Intuitiva:** Esqueça formulários complexos. Use nosso fluxo guiado para criar relatórios diários, semanais ou mensais.
+- **Personalização Completa:** Escolha incluir seu **Nome** e **CPF/CNPJ** para relatórios prontos para contabilidade.
+- **Exportação Master:** Gere arquivos **CSV/Excel** formatados perfeitamente para abrir em qualquer software de planilha.
+
+### 4. 🖋️ Anotações e Detalhamento
+
+- **Observações com Formatação:** Adicione notas detalhadas sobre suas tarefas usando um editor de texto rico (negrito, listas, etc.).
+- **Edição Retroativa:** Precisa atualizar o que fez? Você pode editar suas observações mesmo após finalizar o dia.
+- **Visão Expandida:** Revise suas atividades passadas em uma tabela organizada que esconde detalhes para manter o foco, mas os revela em um clique.
+
+### 5. 🔗 Compartilhamento Seguro
+
+- **Links Blindados:** Compartilhe seus relatórios através de links protegidos por tokens únicos.
+- **Controle de Expiração:** Defina por quanto tempo o link ficará ativo (1 dia, 1 semana, etc.).
+- **Privacidade Total:** Escolha se quem recebe o link pode ver seus gráficos de performance ou apenas as horas brutas.
+
+---
+
+## 🛠️ Tecnologias
+
 <div align="center">
-<image width='500px' src="https://img001.prntscr.com/file/img001/jnKXg3zHQnOB8RAdz0eIKA.png" />
+  <img src="https://img.shields.io/badge/Next.js_15-000?style=for-the-badge&logo=next.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+  <img src="https://img.shields.io/badge/shadcn/ui-000?style=for-the-badge&logo=shadcnui&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL_(Neon)-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Recharts-22b5bf?style=for-the-badge&logo=recharts&logoColor=white" />
+  <img src="https://img.shields.io/badge/React_Hook_Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white" />
+  <img src="https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zorin&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vercel-000?style=for-the-badge&logo=vercel&logoColor=white" />
 </div>
 
+---
+
+## 📅 Histórico de Versões
+
+Confira todas as melhorias e novos recursos em nosso log oficial:
+👉 **[Ver Histórico Completo em RELEASES.md](./RELEASES.md)**
+
+---
+
+## 👨‍💻 Time e Desenvolvimento
+
 <div align="center">
-<image src="https://img001.prntscr.com/file/img001/woAiaPeZQ1eVDCST3xroDQ.png" />
+  <img src="https://avatars.githubusercontent.com/u/100796752?s=400&u=ae99bd456c6b274cd934d85a374a44340140e222&v=4" width="100" style="border-radius: 50%" />
+  <br>
+  <strong>Jonatas Silva</strong>
+  <br>
+  Senior Software Engineer / CTO & Tech Lead at <a href="https://pokernetic.com/">PokerNetic</a>
 </div>
 
-**Syncable** é uma plataforma moderna e intuitiva para gestão de ponto eletrônico. Com recursos avançados de registro de horas e geração de relatórios, a aplicação oferece uma solução completa para empresas e profissionais que precisam controlar suas jornadas de trabalho de forma eficiente.
-
-## 🔍 Funcionalidades Principais
-
-- **Registro de Ponto**: Registro de entrada, saída e pausas com timestamp preciso.
-- **Relatórios**: Geração de relatórios detalhados de horas trabalhadas.
-- **Exportação**: Compartilhamento de dados via CSV e links dinâmicos.
-- **Dashboard**: Visualização clara do histórico de registros e estatísticas.
-
 ---
 
-## 🧱 Arquitetura
+## 📄 Licença
 
-A aplicação utiliza a arquitetura padrão do [Next.js](https://nextjs.org/), com:
+Este projeto é privado e de uso restrito da **Syncable Corporation**.
 
-- Rotas baseadas em arquivos.
-- Suporte a SSR e CSR.
-- Componentização e modularização.
-- Redux para controle global de estado.
-
----
-
-## ⚙️ Instalação
-
-1. **Clone o repositório**
-
-```bash
-git clone https://github.com/seu-usuario/syncable.git
-cd syncable
-```
-
-2. **Instale as dependências**
-
-   ```bash
-   npm install
-   ```
-
-3. **Configure variáveis de ambiente**
-
-   Crie um arquivo `.env` na raiz do projeto com o conteúdo abaixo:
-
-   ```dotenv
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
-   ```
-
-4. **Execute em modo de desenvolvimento**
-
-   ```bash
-   npm run dev
-   ```
-
-5. **Acesse a aplicação**
-   Abra no navegador:
-   ```
-   http://localhost:3000
-   ```
-
----
-
-## 🚀 Tecnologias Utilizadas
-
-![React.js](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)&nbsp;
-![Tailwindcss](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)&nbsp;
-![Next.js](https://img.shields.io/badge/next%20js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)&nbsp;
-![Tanstack Query](https://img.shields.io/badge/-Tanstack%20Query-FF4154?style=for-the-badge&logo=react%20query&logoColor=white)
-![Shadcn](https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white)
-![Axios](https://img.shields.io/badge/axios-671ddf?&style=for-the-badge&logo=axios&logoColor=white)
-![Typescript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)&nbsp;
-![Git](https://img.shields.io/badge/GIT-E44C30?style=for-the-badge&logo=git&logoColor=white)&nbsp;
-![Github](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)&nbsp;
-![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
-
-## 👨‍💻 Desenvolvedores
-
-| Foto                                                                                                                           | Nome                                                 | Cargo               |
-| ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- | ------------------- |
-| <img src="https://avatars.githubusercontent.com/u/100796752?s=400&u=ae99bd456c6b274cd934d85a374a44340140e222&v=4" width="100"> | [Jonatas Silva](https://github.com/JsCodeDevlopment) | FullStack Developer |
-
----
+<div align="center">
+  <sub>Built with ❤️ by <a href="https://github.com/JsCodeDevlopment">Jonatas Silva</a></sub>
+</div>
