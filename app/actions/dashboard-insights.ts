@@ -1,7 +1,7 @@
 "use server";
 
 import { sql } from "@/lib/db";
-import { formatDateForDisplay } from "@/lib/db";
+import { formatDateForDisplay } from "@/lib/utils";
 
 export type DashboardInsight = {
   mostWorkedDay: { date: string; duration: number } | null;

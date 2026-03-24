@@ -2,9 +2,11 @@ import { Pool } from 'pg'
 
 let pgPool: Pool | null = null
 
+// Function to get the database URL from environment variables
 function getDatabaseUrl(): string {
+  // Try different environment variables
   const url =
-    process.env.NEXT_PUBLIC_DATABASE_URL ||
+    process.env.DATABASE_URL ||
     process.env.POSTGRES_URL ||
     process.env.POSTGRES_URL_NON_POOLING ||
     process.env.POSTGRES_PRISMA_URL

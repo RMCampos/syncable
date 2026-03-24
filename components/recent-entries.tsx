@@ -28,6 +28,7 @@ import { calculateDuration, formatDuration } from "@/lib/utils";
 import { Clock, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react"
 import { EditTimeEntry } from "./edit-time-entry";
+import { getNowInTimezone } from "@/lib/timezone"
 
 type Break = {
   id: number;
@@ -140,7 +141,7 @@ export function RecentEntries({ userId }: { userId: number }) {
     fetchEntries();
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString)
     const today = getNowInTimezone(timezone)
 
