@@ -8,8 +8,9 @@ export function cn(...inputs: ClassValue[]) {
 
 // Helper function to format time in hours and minutes
 export function formatDuration(milliseconds: number): string {
-  const hours = Math.floor(milliseconds / (1000 * 60 * 60))
-  const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60))
+  const ms = Math.max(0, milliseconds)
+  const hours = Math.floor(ms / (1000 * 60 * 60))
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
   return `${hours}h ${minutes.toString().padStart(2, "0")}m`
 }
 

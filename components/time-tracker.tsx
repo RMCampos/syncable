@@ -124,11 +124,11 @@ export function TimeTracker({ userId }: { userId: number }) {
   useEffect(() => {
     const now = new Date()
     if (status === "working" && startTime) {
-      const totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000
+      const totalElapsed = Math.max(0, Math.floor((now.getTime() - startTime.getTime()) / 1000) * 1000)
       setElapsedTime(totalElapsed)
     } else if (status === "break" && breakStartTime) {
-      const elapsedBreak = Math.floor((now.getTime() - breakStartTime.getTime()) / 1000) * 1000
-      const elapsedTotal = Math.floor((now.getTime() - startTime!.getTime()) / 1000) * 1000
+      const elapsedBreak = Math.max(0, Math.floor((now.getTime() - breakStartTime.getTime()) / 1000) * 1000)
+      const elapsedTotal = Math.max(0, Math.floor((now.getTime() - startTime!.getTime()) / 1000) * 1000)
       setElapsedTime(elapsedTotal)
       setBreakTime(elapsedBreak)
     }
@@ -369,7 +369,8 @@ export function TimeTracker({ userId }: { userId: number }) {
   };
 
   const formatDurationForPanel = () => {
-    const dur = formatDuration(elapsedTime - totalBreakTime - (status === "break" ? breakTime : 0));
+    const durationMs = Math.max(0, elapsedTime - totalBreakTime - (status === "break" ? breakTime : 0));
+    const dur = formatDuration(durationMs);
     let part1 = dur.split(' ')[0].replace('h', ':')
     let part2 = dur.split(' ')[1].replace('m', '')
     return part1 + part2
@@ -484,18 +485,32 @@ export function TimeTracker({ userId }: { userId: number }) {
       </div>
 
       {status !== "idle" && (
-        <div className="rounded-lg bg-muted/50 p-3 text-center text-xs text-muted-foreground">
-          Started working at{" "}
-          <span className="font-medium text-foreground">
-            {startTime?.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
+        <div className="rounded-lg bg-muted/50 px-3 py-1.5 flex flex-wrap items-center justify-between gap-x-2 text-xs text-muted-foreground min-h-10">
+          <div className="flex flex-wrap items-center">
+            <span>Started working at </span>
+            <span className="font-medium text-foreground ml-1">
+              {startTime?.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            {status === "break" && (
+              <span className="flex items-center">
+                <span className="mx-1 opacity-50">•</span>
+                <span>Break started at </span>
+                <span className="font-medium text-foreground ml-1">
+                  {breakStartTime?.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </span>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="sm"
-            className="ml-2 h-7 px-2 text-[10px] text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+            className="h-7 px-2 text-[10px] text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
             onClick={() => {
               if (startTime) {
                 setAdjustedStartTime(formatTimeForInput(startTime));
@@ -506,18 +521,6 @@ export function TimeTracker({ userId }: { userId: number }) {
             <Clock className="mr-1 h-3 w-3" />
             Delayed entry?
           </Button>
-          {status === "break" && (
-            <span>
-              {" "}
-              • Break started at{" "}
-              <span className="font-medium text-foreground">
-                {breakStartTime?.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </span>
-          )}
         </div>
       )}
 
